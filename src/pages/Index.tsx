@@ -4,6 +4,8 @@ import VoiceButton from '@/components/VoiceButton';
 import ConversationDisplay from '@/components/ConversationDisplay';
 import ConversationHistory from '@/components/ConversationHistory';
 import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const Index = () => {
   const {
@@ -16,7 +18,8 @@ const Index = () => {
     conversations,
     switchConversation,
     deleteConversation,
-    handleSubmitQuery
+    handleSubmitQuery,
+    createNewConversation
   } = useConversation();
 
   const handleVoiceButtonClick = () => {
@@ -27,12 +30,10 @@ const Index = () => {
     }
   };
 
-  const handleNewConversation = () => {
-    // Start a new conversation by clearing the current one
-    // The useConversation hook will create a new one when the user speaks
-    if (currentConversation) {
-      switchConversation('');
-    }
+  const handleNewConversation = async () => {
+    // Create a new conversation
+    const newConversation = await createNewConversation();
+    switchConversation(newConversation.id);
   };
 
   return (
@@ -47,14 +48,28 @@ const Index = () => {
         />
       }
       content={
-        <ConversationDisplay
-          messages={currentConversation?.messages || []}
-          searchResults={currentConversation?.searchResults}
-          youtubeResults={currentConversation?.youtubeResults}
-          transcript={transcript}
-          isListening={isListening}
-          isProcessing={isProcessing}
-        />
+        <div className="flex flex-col h-full gap-4">
+          <div className="flex justify-end">
+            <Button
+              onClick={handleNewConversation}
+              className="bg-elder-blue hover:bg-elder-blue-dark text-white"
+              disabled={isProcessing || isListening}
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              New Conversation
+            </Button>
+          </div>
+          <div className="flex-1">
+            <ConversationDisplay
+              messages={currentConversation?.messages || []}
+              searchResults={currentConversation?.searchResults}
+              youtubeResults={currentConversation?.youtubeResults}
+              transcript={transcript}
+              isListening={isListening}
+              isProcessing={isProcessing}
+            />
+          </div>
+        </div>
       }
       voiceButton={
         <VoiceButton
