@@ -1,13 +1,69 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useConversation } from '@/hooks/useConversation';
+import VoiceButton from '@/components/VoiceButton';
+import ConversationDisplay from '@/components/ConversationDisplay';
+import ConversationHistory from '@/components/ConversationHistory';
+import Layout from '@/components/Layout';
 
 const Index = () => {
+  const {
+    transcript,
+    isListening,
+    isProcessing,
+    startListening,
+    stopListening,
+    currentConversation,
+    conversations,
+    switchConversation,
+    deleteConversation,
+    handleSubmitQuery
+  } = useConversation();
+
+  const handleVoiceButtonClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  const handleNewConversation = () => {
+    // Start a new conversation by clearing the current one
+    // The useConversation hook will create a new one when the user speaks
+    if (currentConversation) {
+      switchConversation('');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Layout
+      sidebar={
+        <ConversationHistory
+          conversations={conversations}
+          currentConversationId={currentConversation?.id || null}
+          onSelectConversation={switchConversation}
+          onDeleteConversation={deleteConversation}
+          onNewConversation={handleNewConversation}
+        />
+      }
+      content={
+        <ConversationDisplay
+          messages={currentConversation?.messages || []}
+          searchResults={currentConversation?.searchResults}
+          youtubeResults={currentConversation?.youtubeResults}
+          transcript={transcript}
+          isListening={isListening}
+          isProcessing={isProcessing}
+        />
+      }
+      voiceButton={
+        <VoiceButton
+          isListening={isListening}
+          isProcessing={isProcessing}
+          onClick={handleVoiceButtonClick}
+        />
+      }
+    />
   );
 };
 

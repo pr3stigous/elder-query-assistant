@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,7 +19,21 @@ export default {
 			}
 		},
 		extend: {
+			fontSize: {
+				'elderly': '1.25rem', // 20px base font size for elderly users
+				'elderly-lg': '1.5rem', // 24px larger text
+				'elderly-xl': '2rem', // 32px for headings
+			},
+			spacing: {
+				'elderly': '1.5rem', // Larger default spacing
+				'elderly-lg': '2rem', // Even larger spacing
+			},
 			colors: {
+				'elder-blue': '#4A7CFC',
+				'elder-blue-light': '#7FA1FF',
+				'elder-blue-dark': '#1F52D6',
+				'elder-gray': '#F8F9FD',
+				'elder-text': '#333333',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -66,7 +81,8 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'elderly': '1rem', // Rounded corners for better visibility
 			},
 			keyframes: {
 				'accordion-down': {
@@ -84,11 +100,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-gentle': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.6' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite'
 			}
 		}
 	},
