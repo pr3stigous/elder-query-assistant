@@ -138,7 +138,10 @@ export function useApiKey() {
           // Update existing record
           await supabase
             .from('api_keys')
-            .update({ [`${type}_key`]: key, updated_at: new Date() })
+            .update({ 
+              [`${type}_key`]: key, 
+              updated_at: new Date().toISOString() 
+            })
             .eq('user_id', userId);
         } else {
           // Insert new record
@@ -185,7 +188,10 @@ export function useApiKey() {
       try {
         await supabase
           .from('api_keys')
-          .update({ [`${type}_key`]: null, updated_at: new Date() })
+          .update({ 
+            [`${type}_key`]: null, 
+            updated_at: new Date().toISOString() 
+          })
           .eq('user_id', userId);
           
         // Update local state  

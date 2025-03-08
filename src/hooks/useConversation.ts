@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { voiceService } from '@/services/voiceService';
 import { searchService, SearchResult, YouTubeResult } from '@/services/searchService';
@@ -93,12 +92,21 @@ export function useConversation() {
               timestamp: new Date(msg.created_at)
             }));
 
+            // Transform YouTube results to match the YouTubeResult interface
+            const youtubeResults = youtubeResultsData.map(result => ({
+              title: result.title,
+              videoId: result.video_id,
+              thumbnail: result.thumbnail,
+              channelTitle: result.channel_title || '',
+              description: result.description || ''
+            }));
+
             loadedConversations.push({
               id: conv.id,
               title: conv.title,
               messages: messages,
               searchResults: searchResultsData,
-              youtubeResults: youtubeResultsData,
+              youtubeResults: youtubeResults,
               timestamp: new Date(conv.created_at)
             });
           }
