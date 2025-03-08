@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { voiceService } from '@/services/voiceService';
 import { searchService, SearchResult, YouTubeResult } from '@/services/searchService';
@@ -42,20 +43,35 @@ export function useConversation() {
     }
   }, [apiKeys]);
 
+  // Check if user is authenticated and log it
+  useEffect(() => {
+    if (userId) {
+      console.log("User is authenticated with ID:", userId);
+    } else {
+      console.log("User is not authenticated");
+    }
+  }, [userId]);
+
   // Load conversations based on authentication status
   useEffect(() => {
     const loadConversations = async () => {
       setIsSyncing(true);
       try {
         if (userId) {
+          console.log("Loading conversations from Supabase for user:", userId);
           // Fetch conversations from Supabase
           const { data: conversationsData, error: conversationsError } = await supabase
             .from('conversations')
             .select('id, title, created_at, updated_at')
+            .eq('user_id', userId)
             .order('updated_at', { ascending: false });
 
-          if (conversationsError) throw conversationsError;
+          if (conversationsError) {
+            console.error("Error fetching conversations:", conversationsError);
+            throw conversationsError;
+          }
 
+          console.log("Loaded conversations from Supabase:", conversationsData);
           const loadedConversations: Conversation[] = [];
 
           for (const conv of conversationsData) {
@@ -66,7 +82,10 @@ export function useConversation() {
               .eq('conversation_id', conv.id)
               .order('created_at', { ascending: true });
 
-            if (messagesError) throw messagesError;
+            if (messagesError) {
+              console.error("Error fetching messages:", messagesError);
+              throw messagesError;
+            }
 
             // Fetch search results
             const { data: searchResultsData, error: searchResultsError } = await supabase
@@ -74,7 +93,10 @@ export function useConversation() {
               .select('*')
               .eq('conversation_id', conv.id);
 
-            if (searchResultsError) throw searchResultsError;
+            if (searchResultsError) {
+              console.error("Error fetching search results:", searchResultsError);
+              throw searchResultsError;
+            }
 
             // Fetch YouTube results
             const { data: youtubeResultsData, error: youtubeResultsError } = await supabase
@@ -82,7 +104,10 @@ export function useConversation() {
               .select('*')
               .eq('conversation_id', conv.id);
 
-            if (youtubeResultsError) throw youtubeResultsError;
+            if (youtubeResultsError) {
+              console.error("Error fetching YouTube results:", youtubeResultsError);
+              throw youtubeResultsError;
+            }
 
             // Format message timestamps
             const messages = messagesData.map(msg => ({
@@ -130,6 +155,7 @@ export function useConversation() {
           }
         } else {
           // If not authenticated, load from localStorage
+          console.log("User not authenticated, loading from localStorage");
           const savedConversations = localStorage.getItem('elderQueryConversations');
           if (savedConversations) {
             try {
@@ -144,6 +170,7 @@ export function useConversation() {
                 }))
               }));
               setConversations(formattedConversations);
+              console.log("Loaded conversations from localStorage:", formattedConversations);
             } catch (e) {
               console.error('Error loading localStorage conversations:', e);
               toast({
@@ -170,6 +197,7 @@ export function useConversation() {
     // Helper function to migrate localStorage conversations to Supabase
     const migrateLocalStorageConversations = async (localConversations: any[]) => {
       try {
+        console.log("Migrating conversations from localStorage to Supabase");
         for (const conv of localConversations) {
           // Insert conversation
           const { data: convData, error: convError } = await supabase
@@ -238,6 +266,7 @@ export function useConversation() {
             if (ytError) throw ytError;
           }
         }
+        console.log("Migration from localStorage to Supabase completed");
       } catch (error) {
         console.error('Error migrating localStorage conversations to Supabase:', error);
         throw error;
@@ -253,6 +282,7 @@ export function useConversation() {
     
     if (!userId) {
       try {
+        console.log("Saving conversations to localStorage:", conversations);
         localStorage.setItem('elderQueryConversations', JSON.stringify(conversations));
       } catch (error) {
         console.error('Error saving conversations to localStorage:', error);
@@ -311,6 +341,7 @@ export function useConversation() {
 
     if (userId) {
       try {
+        console.log("Creating new conversation in Supabase for user:", userId);
         // Save to Supabase
         const { error } = await supabase
           .from('conversations')
@@ -320,7 +351,11 @@ export function useConversation() {
             user_id: userId,
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error creating conversation in Supabase:", error);
+          throw error;
+        }
+        console.log("New conversation created in Supabase with ID:", newId);
       } catch (error) {
         console.error('Error creating new conversation in Supabase:', error);
         toast({
@@ -329,10 +364,13 @@ export function useConversation() {
           variant: "destructive"
         });
       }
+    } else {
+      console.log("User not authenticated, not saving to Supabase");
     }
 
     // Add the new conversation to the local state
     setConversations(prev => [newConversation, ...prev]);
+    console.log("Added new conversation to local state:", newConversation);
     
     return newConversation;
   };
@@ -367,6 +405,7 @@ export function useConversation() {
       // Update title in Supabase if authenticated
       if (userId) {
         try {
+          console.log("Updating conversation title in Supabase:", updatedTitle);
           await supabase
             .from('conversations')
             .update({ title: updatedTitle, updated_at: timestamp.toISOString() })
@@ -388,6 +427,7 @@ export function useConversation() {
     // Save user message to Supabase if authenticated
     if (userId) {
       try {
+        console.log("Saving user message to Supabase:", userMessage);
         await supabase.from('messages').insert({
           id: messageId,
           conversation_id: conv.id,
@@ -438,6 +478,7 @@ export function useConversation() {
       // Save to Supabase if authenticated
       if (userId) {
         try {
+          console.log("Saving assistant message to Supabase");
           // Save assistant message
           await supabase.from('messages').insert({
             id: assistantMessageId,
@@ -447,6 +488,7 @@ export function useConversation() {
             created_at: assistantTimestamp.toISOString()
           });
           
+          console.log("Saving search results to Supabase");
           // Save search results
           if (searchResults && searchResults.length > 0) {
             const searchResultsForInsert = searchResults.map(result => ({
@@ -460,6 +502,7 @@ export function useConversation() {
             await supabase.from('search_results').insert(searchResultsForInsert);
           }
           
+          console.log("Saving YouTube results to Supabase");
           // Save YouTube results
           if (youtubeResults && youtubeResults.length > 0) {
             const youtubeResultsForInsert = youtubeResults.map(result => ({
@@ -474,6 +517,7 @@ export function useConversation() {
             await supabase.from('youtube_results').insert(youtubeResultsForInsert);
           }
           
+          console.log("Updating conversation timestamp in Supabase");
           // Update conversation timestamp
           await supabase
             .from('conversations')
@@ -498,6 +542,7 @@ export function useConversation() {
   };
 
   const switchConversation = (conversationId: string) => {
+    console.log("Switching to conversation:", conversationId);
     const conversation = conversations.find(conv => conv.id === conversationId);
     if (conversation) {
       setCurrentConversation(conversation);
@@ -512,6 +557,7 @@ export function useConversation() {
     // Delete from Supabase if authenticated
     if (userId) {
       try {
+        console.log("Deleting conversation from Supabase:", conversationId);
         await supabase
           .from('conversations')
           .delete()
