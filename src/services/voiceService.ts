@@ -1,5 +1,6 @@
 
 import { toast } from '@/hooks/use-toast';
+import { Message } from '@/hooks/useConversation';
 
 // Types for the service
 export interface VoiceServiceConfig {
@@ -101,7 +102,7 @@ class VoiceService {
     }
   }
 
-  async processWithLLM(text: string): Promise<string> {
+  async processWithLLM(text: string, previousMessages: Message[] = []): Promise<string> {
     if (!this.openAIKey) {
       toast({
         title: "API Key Missing",
@@ -112,6 +113,28 @@ class VoiceService {
     }
 
     try {
+      // Convert previous messages to the format expected by OpenAI API
+      const conversationHistory = previousMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      // Add system message at the beginning
+      const messages = [
+        {
+          role: 'system',
+          content: `You are a helpful assistant for elderly users. Your purpose is to:
+          1. Understand their query clearly
+          2. Break down complex questions into simpler parts
+          3. Provide clear, concise answers with larger font suggestions
+          4. Always consider that your users may have hearing or vision impairments
+          5. Use simple language and avoid technical terms
+          Always respond in a warm, patient tone.`
+        },
+        ...conversationHistory,
+        { role: 'user', content: text }
+      ];
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -120,19 +143,7 @@ class VoiceService {
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a helpful assistant for elderly users. Your purpose is to:
-              1. Understand their query clearly
-              2. Break down complex questions into simpler parts
-              3. Provide clear, concise answers with larger font suggestions
-              4. Always consider that your users may have hearing or vision impairments
-              5. Use simple language and avoid technical terms
-              Always respond in a warm, patient tone.`
-            },
-            { role: 'user', content: text }
-          ],
+          messages: messages,
           temperature: 0.7,
           max_tokens: 500
         })

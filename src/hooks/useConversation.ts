@@ -331,6 +331,9 @@ export function useConversation() {
       }
     }
 
+    // Add the new conversation to the local state
+    setConversations(prev => [newConversation, ...prev]);
+    
     return newConversation;
   };
 
@@ -345,7 +348,6 @@ export function useConversation() {
       const newConversation = await createNewConversation();
       conv = newConversation;
       setCurrentConversation(newConversation);
-      setConversations(prev => [newConversation, ...prev]);
     }
     
     // Add user message
@@ -399,8 +401,8 @@ export function useConversation() {
     }
     
     try {
-      // Process with LLM
-      const aiResponse = await voiceService.processWithLLM(query);
+      // Process with LLM - pass the current conversation messages for context
+      const aiResponse = await voiceService.processWithLLM(query, updatedConv.messages);
       
       // Perform search
       const searchResults = await searchService.performSearch(query);

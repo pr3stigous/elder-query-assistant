@@ -31,9 +31,14 @@ const Index = () => {
   };
 
   const handleNewConversation = async () => {
-    // Create a new conversation
-    const newConversation = await createNewConversation();
-    switchConversation(newConversation.id);
+    try {
+      // Create a new conversation
+      const newConversation = await createNewConversation();
+      // Switch to the new conversation
+      switchConversation(newConversation.id);
+    } catch (error) {
+      console.error("Error creating new conversation:", error);
+    }
   };
 
   return (
