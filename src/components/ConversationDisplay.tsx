@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Bot, Search, Loader2, Youtube, VolumeX, Volume2 } from 'lucide-react';
 import { Message } from '@/hooks/useConversation';
@@ -91,15 +90,18 @@ const ConversationDisplay: React.FC<ConversationDisplayProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="p-1 h-auto"
+                      className="p-2 h-auto flex items-center gap-1 hover:bg-elder-blue-light hover:text-white rounded-full"
                       onClick={() => handleReadAloud(message.content, message.id)}
                       aria-label={readingMessageId === message.id ? "Stop reading" : "Read aloud"}
                     >
                       {readingMessageId === message.id ? (
-                        <VolumeX size={18} className="text-elder-blue-dark" />
+                        <VolumeX size={26} className="text-elder-blue-dark" />
                       ) : (
-                        <Volume2 size={18} className="text-elder-blue" />
+                        <Volume2 size={26} className="text-elder-blue" />
                       )}
+                      <span className="text-sm font-medium">
+                        {readingMessageId === message.id ? "Stop" : "Read"}
+                      </span>
                     </Button>
                   )}
                 </div>

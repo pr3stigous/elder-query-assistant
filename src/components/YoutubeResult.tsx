@@ -49,11 +49,12 @@ const YoutubeResult: React.FC<YoutubeResultProps> = ({ video, onReadAloud }) => 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="p-1 h-auto ml-2"
+                  className="p-2 h-auto ml-2 hover:bg-elder-blue-light hover:text-white rounded-full flex items-center gap-1"
                   onClick={onReadAloud}
                   aria-label="Read aloud"
                 >
-                  <Volume2 size={20} className="text-elder-blue" />
+                  <Volume2 size={26} className="text-elder-blue" />
+                  <span className="text-sm font-medium">Read</span>
                 </Button>
               )}
             </div>
