@@ -1,42 +1,65 @@
 
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Volume2 } from 'lucide-react';
 import { YouTubeResult } from '@/services/searchService';
+import { Button } from '@/components/ui/button';
 
 interface YoutubeResultProps {
   video: YouTubeResult;
+  onReadAloud?: () => void;
 }
 
-const YoutubeResult: React.FC<YoutubeResultProps> = ({ video }) => {
+const YoutubeResult: React.FC<YoutubeResultProps> = ({ video, onReadAloud }) => {
   return (
     <div className="p-4 border rounded-elderly bg-white hover:shadow-md transition-shadow">
-      <a 
-        href={`https://www.youtube.com/watch?v=${video.videoId}`} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="block"
-      >
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="md:w-1/3 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="md:w-1/3 flex-shrink-0">
+          <a 
+            href={`https://www.youtube.com/watch?v=${video.videoId}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
             <img 
               src={video.thumbnail} 
               alt={video.title} 
               className="w-full h-auto rounded-lg object-cover"
               loading="lazy"
             />
-          </div>
-          <div className="md:w-2/3">
-            <div className="flex justify-between items-start">
+          </a>
+        </div>
+        <div className="md:w-2/3">
+          <div className="flex justify-between items-start">
+            <a 
+              href={`https://www.youtube.com/watch?v=${video.videoId}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
               <h3 className="text-elderly font-medium text-elder-blue hover:underline">{video.title}</h3>
-              <ExternalLink className="text-gray-400 flex-shrink-0 ml-2" size={18} />
+              {video.channelTitle && (
+                <p className="text-sm text-gray-500 mt-1">{video.channelTitle}</p>
+              )}
+              <p className="text-gray-700 mt-2">{video.description}</p>
+            </a>
+            
+            <div className="flex items-start ml-2">
+              <ExternalLink className="text-gray-400 flex-shrink-0" size={18} />
+              
+              {onReadAloud && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-auto ml-2"
+                  onClick={onReadAloud}
+                  aria-label="Read aloud"
+                >
+                  <Volume2 size={20} className="text-elder-blue" />
+                </Button>
+              )}
             </div>
-            {video.channelTitle && (
-              <p className="text-sm text-gray-500 mt-1">{video.channelTitle}</p>
-            )}
-            <p className="text-gray-700 mt-2">{video.description}</p>
           </div>
         </div>
-      </a>
+      </div>
     </div>
   );
 };

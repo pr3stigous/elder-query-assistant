@@ -1,12 +1,14 @@
 
-import React from 'react';
-import { User, Bot, Search, Loader2, Youtube } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Bot, Search, Loader2, Youtube, VolumeX, Volume2 } from 'lucide-react';
 import { Message } from '@/hooks/useConversation';
 import { SearchResult, YouTubeResult } from '@/services/searchService';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SearchResults from '@/components/SearchResults';
 import YoutubeResult from '@/components/YoutubeResult';
+import { Button } from '@/components/ui/button';
+import { ttsService } from '@/services/ttsService';
 
 interface ConversationDisplayProps {
   messages: Message[];
@@ -25,6 +27,39 @@ const ConversationDisplay: React.FC<ConversationDisplayProps> = ({
   isListening,
   isProcessing
 }) => {
+  const [readingMessageId, setReadingMessageId] = useState<string | null>(null);
+
+  const handleReadAloud = (text: string, messageId: string) => {
+    if (readingMessageId === messageId) {
+      // Stop reading if the same message is clicked again
+      ttsService.stop();
+      setReadingMessageId(null);
+    } else {
+      // Read the new message
+      ttsService.stop(); // Stop any current reading
+      ttsService.speak(text);
+      setReadingMessageId(messageId);
+      
+      // Reset the reading state when speech ends
+      const checkIfStillReading = setInterval(() => {
+        if (!ttsService.isCurrentlyReading()) {
+          setReadingMessageId(null);
+          clearInterval(checkIfStillReading);
+        }
+      }, 500);
+    }
+  };
+
+  const handleReadSearchResult = (result: SearchResult) => {
+    const textToRead = `${result.title}. ${result.content}`;
+    ttsService.speak(textToRead);
+  };
+
+  const handleReadYoutubeResult = (result: YouTubeResult) => {
+    const textToRead = `${result.title} by ${result.channelTitle}. ${result.description}`;
+    ttsService.speak(textToRead);
+  };
+
   return (
     <div className="elderly-card flex flex-col h-full overflow-hidden bg-white">
       <div className="p-elderly-lg bg-elder-gray rounded-t-elderly border-b">
@@ -47,8 +82,26 @@ const ConversationDisplay: React.FC<ConversationDisplayProps> = ({
                   : 'bg-elder-blue text-white'
               }`}>
                 <p className="text-elderly whitespace-pre-wrap">{message.content}</p>
-                <div className="text-xs opacity-70 mt-2">
-                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs opacity-70">
+                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  
+                  {message.role === 'assistant' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1 h-auto"
+                      onClick={() => handleReadAloud(message.content, message.id)}
+                      aria-label={readingMessageId === message.id ? "Stop reading" : "Read aloud"}
+                    >
+                      {readingMessageId === message.id ? (
+                        <VolumeX size={18} className="text-elder-blue-dark" />
+                      ) : (
+                        <Volume2 size={18} className="text-elder-blue" />
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
               
@@ -67,7 +120,10 @@ const ConversationDisplay: React.FC<ConversationDisplayProps> = ({
                 <Search className="text-elder-blue" />
                 <h3 className="text-elderly-lg font-semibold">Search Results</h3>
               </div>
-              <SearchResults results={searchResults} />
+              <SearchResults 
+                results={searchResults} 
+                onReadAloud={handleReadSearchResult}
+              />
             </div>
           )}
           
@@ -80,7 +136,11 @@ const ConversationDisplay: React.FC<ConversationDisplayProps> = ({
               </div>
               <div className="space-y-4">
                 {youtubeResults.map((result) => (
-                  <YoutubeResult key={result.videoId} video={result} />
+                  <YoutubeResult 
+                    key={result.videoId} 
+                    video={result} 
+                    onReadAloud={() => handleReadYoutubeResult(result)}
+                  />
                 ))}
               </div>
             </div>
